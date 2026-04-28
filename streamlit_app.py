@@ -6,10 +6,11 @@ import pickle
 import json
 from PIL import Image
 import os
+import pywt
 
 # Page configuration
 st.set_page_config(
-    page_title="Leaders Image Classification",
+    page_title="Ethiopian Leaders Image Classification",
     page_icon="🎭",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -52,40 +53,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Load model and class dictionary
-@st.cache_resource
 def load_model_and_classes():
     """Load the trained model and class dictionary"""
-    model = None
-    
-    # Try loading with joblib first (recommended for sklearn models)
-    try:
-        model = joblib.load('saved_model.pkl')
-        st.toast("✓ Model loaded successfully with joblib", icon="✓")
-    except Exception as e1:
-        st.warning(f"Could not load with joblib: {e1}")
-        
-        # Fallback: Try loading with pickle
-        try:
-            with open('saved_model.pkl', 'rb') as f:
-                model = pickle.load(f)
-            st.toast("✓ Model loaded successfully with pickle", icon="✓")
-        except Exception as e2:
-            error_msg = f"Error loading model - joblib: {e1} | pickle: {e2}"
-            st.error(error_msg)
-            return None, None, None
+    # Load model using joblib 
+    model = joblib.load('saved_model.pkl')
     
     # Load class dictionary
-    try:
-        with open('class_dictionary.json', 'r') as f:
-            class_dict = json.load(f)
-        
-        # Create reverse mapping (index to class name)
-        reverse_class_dict = {v: k for k, v in class_dict.items()}
-        
-        return model, class_dict, reverse_class_dict
-    except Exception as e:
-        st.error(f"Error loading class dictionary: {e}")
-        return model, None, None
+    with open('class_dictionary.json', 'r', encoding='utf-8') as f:
+        class_dict = json.load(f)
+    
+    # Create reverse mapping (index to class name)
+    reverse_class_dict = {v: k for k, v in class_dict.items()}
+    
+    return model, class_dict, reverse_class_dict
 
 # Initialize Haar Cascades for face and eye detection
 @st.cache_resource
@@ -122,47 +102,69 @@ def get_cropped_image_if_2_eyes(image_path, face_cascade, eye_cascade):
     
     return None, "Could not detect 2 eyes in any face"
 
+# Wavelet transformation function (matches training preprocessing)
+def w2d(img, mode='db1', level=5):
+    """Apply 2D wavelet decomposition and return reconstructed Haar features"""
+    if len(img.shape) == 3:
+        imArray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    else:
+        imArray = img
+    imArray = np.float32(imArray)
+    imArray /= 255.0
+    coeffs = pywt.wavedec2(imArray, mode, level=level)
+    # Zero out the approximation coefficients (matches training)
+    coeffs_H = list(coeffs)
+    coeffs_H[0] *= 0
+    imArray_H = pywt.waverec2(coeffs_H, mode)
+    imArray_H *= 255
+    imArray_H = np.uint8(imArray_H)
+    return imArray_H
+
 # Function to predict leader from image
 def predict_leader(image, model, reverse_class_dict):
-    """Predict the leader from the image"""
+    """Predict the leader from the image - matches training preprocessing"""
     try:
-        # Resize image to match model input
-        image_resized = cv2.resize(image, (128, 128))  # Adjust size based on your model
+        # Get raw RGB features: resize original to 32x32
+        img_resized = cv2.resize(image, (32, 32))
+        raw_features = img_resized.reshape(32*32*3).astype(np.float32)
         
-        # Normalize the image
-        image_normalized = image_resized / 255.0
+        # Get wavelet Haar features: apply w2d to ORIGINAL image (like training), then resize
+        img_har = w2d(image, 'db1', 5)
+        img_har_resized = cv2.resize(img_har, (32, 32))
+        haar_features = img_har_resized.reshape(32*32).astype(np.float32)
         
-        # Flatten the image
-        image_flattened = image_normalized.flatten()
+        # Combine features: vstack then flatten (3072 + 1024 = 4096 total)
+        combined_features = np.vstack((raw_features.reshape(-1, 1), haar_features.reshape(-1, 1))).flatten()
         
         # Make prediction - reshape to 2D array for sklearn models
-        prediction = model.predict(image_flattened.reshape(1, -1))
+        prediction = model.predict(combined_features.reshape(1, -1))
         
         try:
-            # Try to get probability if available
-            confidence_proba = model.predict_proba(image_flattened.reshape(1, -1))
-            max_confidence = np.max(confidence_proba)
+            # Get probability if available
+            confidence_proba = model.predict_proba(combined_features.reshape(1, -1))
+            max_confidence = np.max(confidence_proba) * 100  # Convert to percentage
         except:
-            # If predict_proba not available, use confidence of 1.0
-            max_confidence = 1.0
+            max_confidence = 100.0
         
-        predicted_class = prediction[0]
-        predicted_name = reverse_class_dict.get(int(predicted_class), "Unknown")
+        predicted_class = int(prediction[0])
+        predicted_name = reverse_class_dict.get(predicted_class, "Unknown")
         
         return predicted_name, max_confidence
     except Exception as e:
         return None, str(e)
 
 # Load model and cascades
-model, class_dict, reverse_class_dict = load_model_and_classes()
-face_cascade, eye_cascade = load_cascades()
-
-if model is None or class_dict is None:
-    st.error("Failed to load model or class dictionary. Please check the files.")
+try:
+    model, class_dict, reverse_class_dict = load_model_and_classes()
+    st.toast("Model loaded successfully", icon="✅")
+except Exception as e:
+    st.error(f"Failed to load model or class dictionary: {e}")
     st.stop()
 
+face_cascade, eye_cascade = load_cascades()
+
 # Main header
-st.markdown("<h1 class='main-header'>🎭 Leaders Image Classification Model</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>🎭 Ethiopian Leaders Image Classification Model</h1>", unsafe_allow_html=True)
 st.markdown("Upload a photo of a leader to identify who they are!", unsafe_allow_html=True)
 
 # Display reference images
@@ -187,7 +189,7 @@ for idx, (leader_name, image_path) in enumerate(reference_images.items()):
             st.markdown(f"<div class='leader-card'>", unsafe_allow_html=True)
             try:
                 img = Image.open(image_path)
-                st.image(img, use_column_width=True)
+                st.image(img, width=250)
                 st.markdown(f"<p style='text-align: center; font-weight: bold;'>{leader_name}</p>", unsafe_allow_html=True)
             except Exception as e:
                 st.warning(f"Could not load image for {leader_name}")
@@ -222,7 +224,7 @@ if uploaded_file is not None:
     
     with col1:
         uploaded_img = Image.open(uploaded_file)
-        st.image(uploaded_img, caption="Your Uploaded Image", use_column_width=True)
+        st.image(uploaded_img, caption="Your Uploaded Image", width=300)
     
     # Process image and show detected face
     with col2:
@@ -231,7 +233,7 @@ if uploaded_file is not None:
             
             if cropped_image[0] is not None:
                 cropped_img_pil = Image.fromarray(cv2.cvtColor(cropped_image[0], cv2.COLOR_BGR2RGB))
-                st.image(cropped_img_pil, caption="Detected Face", use_column_width=True)
+                st.image(cropped_img_pil, caption="Detected Face", width=300)
             else:
                 st.warning(f"⚠️ {cropped_image[1]}")
                 st.info("Please try uploading a clearer image with a visible face and both eyes.")
@@ -253,7 +255,7 @@ if uploaded_file is not None:
                 if predicted_leader is not None:
                     st.markdown(f"<div class='prediction-box'>", unsafe_allow_html=True)
                     st.markdown(f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2%}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2f}%</div>", unsafe_allow_html=True)
                     st.markdown(f"</div>", unsafe_allow_html=True)
                 else:
                     st.error(f"Prediction error: {confidence}")
