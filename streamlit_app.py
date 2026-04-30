@@ -175,11 +175,11 @@ st.markdown("Here are sample images of the leaders the model can recognize:")
 col1, col2, col3, col4, col5 = st.columns(5)
 
 reference_images = {
-    "Dr. Abiy Ahmed": "images/abiy.png",
-    "Emperor Haileslasie": "images/janhoy.png",
-    "Hailemariam Desalegn": "images/hailemariam.png",
-    "Meles Zenawi": "images/meles.png",
-    "Mengistu Hailemariam": "images/mengistu.png"
+    "         Dr. Abiy Ahmed - Current Prime Minister \n [2 April 2018 - present] ": "images/abiy.png",
+    " Emperor Haileslasie - Former Emperor \n [12 September 1974 - 2 November 1930]": "images/janhoy.png",
+    " Hailemariam Desalegn - Former Prime Minister \n [20 August 2012 – 2 April 2018]": "images/hailemariam.png",
+    "         Meles Zenawi - Former Prime Minister  \n [23 August 1995 – 20 August 2012]": "images/meles.png",
+    " Mengistu Hailemariam - Former President \n [10 September 1987 – 21 May 1991]": "images/mengistu.png"
 }
 
 cols = [col1, col2, col3, col4, col5]
@@ -253,10 +253,17 @@ if uploaded_file is not None:
                 )
                 
                 if predicted_leader is not None:
-                    st.markdown(f"<div class='prediction-box'>", unsafe_allow_html=True)
-                    st.markdown(f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2f}%</div>", unsafe_allow_html=True)
-                    st.markdown(f"</div>", unsafe_allow_html=True)
+                    if confidence > 75:
+                        st.markdown(f"<div class='prediction-box'>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2f}%</div>", unsafe_allow_html=True)
+                        st.markdown(f"</div>", unsafe_allow_html=True)
+                    else:
+                        st.warning(f"⚠️ Low Confidence Detection")
+                        st.markdown(f"<div style='background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 5px; margin-top: 20px;'>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size: 18px; color: #856404;'>Model confidence: {confidence:.2f}% (Threshold: >75%)</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='color: #856404;'>The person in this image may not be one of the trained leaders.</p>", unsafe_allow_html=True)
+                        st.markdown(f"</div>", unsafe_allow_html=True)
                 else:
                     st.error(f"Prediction error: {confidence}")
         else:

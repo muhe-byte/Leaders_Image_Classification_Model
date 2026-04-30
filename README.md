@@ -4,8 +4,6 @@ Recognizing historical figures in images is often hampered by low-resolution arc
 
 Classical Computer Vision: Manual data cleaning and robust feature extraction.
 
-Generative AI: Synthetic data generation using LoRA to balance classes for historical figures.
-
 Supervised Learning: An SVM classifier optimized for high-dimensional feature sets.
 
 ### 👥 Targeted Leaders
@@ -55,12 +53,9 @@ Accuracy: 91.67%.
 ✅ **User-Friendly Interface**: Clean, modern UI built with Streamlit.
 
 ### Setup & Installation
-
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
+1. **Installing required libraries**
+    - [pip install : "Numpy", 'pandas', 'matplotlib'
+        ,'streamlit', 'openCV', 'scikit-learn', 'seaborn', 'pywt']
 2. **Verify Required Files**
    Ensure you have the following files in the project directory:
    - `saved_model.pkl` - Trained model
@@ -115,7 +110,7 @@ Accuracy: 91.67%.
 │   ├── hailemariam.png
 │   ├── meles.png
 │   └── mengistu.png
-├── 📄 requirements.txt            # Python dependencies
+|
 ├── 📄 Cleaning & Modeling.ipynb   # Model training notebook
 ├── 📄 README.md                   # This file
 └── 📁 dataset/                    # Training dataset
