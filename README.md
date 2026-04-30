@@ -110,7 +110,7 @@ Accuracy: 91.67%.
 │   ├── hailemariam.png
 │   ├── meles.png
 │   └── mengistu.png
-|
+|── 📄requirements.txt             # required libraries for deploy
 ├── 📄 Cleaning & Modeling.ipynb   # Model training notebook
 ├── 📄 README.md                   # This file
 └── 📁 dataset/                    # Training dataset
