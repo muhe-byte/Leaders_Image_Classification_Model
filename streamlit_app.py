@@ -260,7 +260,7 @@ if uploaded_file is not None:
                     else:
                         st.warning(f"⚠️ Low Confidence Detection")
                         st.markdown(f"<div style='background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 5px; margin-top: 20px;'>", unsafe_allow_html=True)
-                        st.markdown(f"<p style='font-size: 18px; color: #856404;'>Model confidence: {confidence:.2f}% (Threshold: >75%)</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size: 18px; color: #856404;'>Model confidence: {confidence:.2f}% (Threshold: >98%)</p>", unsafe_allow_html=True)
                         st.markdown(f"<p style='color: #856404;'>The person in this image may not be one of the trained leaders.</p>", unsafe_allow_html=True)
                         st.markdown(f"</div>", unsafe_allow_html=True)
                 else:
