@@ -2,7 +2,6 @@ import streamlit as st
 import cv2
 import numpy as np
 import joblib
-import pickle
 import json
 from PIL import Image
 import os
@@ -253,7 +252,7 @@ if uploaded_file is not None:
                 )
                 
                 if predicted_leader is not None:
-                    if confidence > 75:
+                    if confidence > 90:
                         st.markdown(f"<div class='prediction-box'>", unsafe_allow_html=True)
                         st.markdown(f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2f}%</div>", unsafe_allow_html=True)
