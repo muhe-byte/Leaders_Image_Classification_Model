@@ -252,7 +252,7 @@ if uploaded_file is not None:
                 )
                 
                 if predicted_leader is not None:
-                    if confidence > 90:
+                    if confidence > 98:
                         st.markdown(f"<div class='prediction-box'>", unsafe_allow_html=True)
                         st.markdown(f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>", unsafe_allow_html=True)
                         st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2f}%</div>", unsafe_allow_html=True)
