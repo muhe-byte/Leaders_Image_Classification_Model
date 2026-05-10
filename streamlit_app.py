@@ -237,16 +237,19 @@ if uploaded_file is not None:
                 predicted_leader, confidence, combined_features = predict_leader(
                     cropped_image_data, model, reverse_class_dict
                 )
-
-            if predicted_leader is not None:
-                if confidence > 94:
-                    st.markdown(
-                        f"<div class='prediction-box'>"
-                        f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>"
-                        f"<div style='font-size:18px;color:#155724;'>Confidence: {confidence:.2f}%</div>"
-                        f"</div>",
-                        unsafe_allow_html=True
-                    )
+                
+                if predicted_leader is not None:
+                    if confidence > 98:
+                        st.markdown(f"<div class='prediction-box'>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='prediction-text'>✅ Predicted: {predicted_leader}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='font-size: 18px; color: #155724;'>Confidence: {confidence:.2f}%</div>", unsafe_allow_html=True)
+                        st.markdown(f"</div>", unsafe_allow_html=True)
+                    else:
+                        st.warning(f"⚠️ Low Confidence Detection")
+                        st.markdown(f"<div style='background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 5px; margin-top: 20px;'>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size: 18px; color: #856404;'>Model confidence: {confidence:.2f}% (Threshold: >75%)</p>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='color: #856404;'>The person in this image may not be one of the trained leaders.</p>", unsafe_allow_html=True)
+                        st.markdown(f"</div>", unsafe_allow_html=True)
                 else:
                     st.warning('⚠️ Low Confidence Detection')
                     st.markdown(
