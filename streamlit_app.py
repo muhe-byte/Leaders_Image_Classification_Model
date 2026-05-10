@@ -307,8 +307,8 @@ if uploaded_file is not None:
                     plt.close(fig)
                 except Exception as chart_err:
                     st.info(f'Chart unavailable: {chart_err}')
-            else:
-                st.error(f'Prediction error: {confidence}')
+                else:
+                     st.error(f'Prediction error: {confidence}')
         else:
             st.error(f"❌ {status}")
             st.info("The image needs to show a clear face with both eyes visible. Please try another image.")
