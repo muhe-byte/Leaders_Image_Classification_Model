@@ -65,12 +65,22 @@ def load_model_and_classes():
 @st.cache_resource
 def load_cascades():
     """Load Haar Cascade classifiers for face and eye detection"""
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+    cascade_dir = getattr(getattr(cv2, "data", None), "haarcascades", None)
+    if cascade_dir is None:
+        cascade_dir = os.path.join(os.path.dirname(cv2.__file__), "data")
+
+    face_cascade_path = os.path.join(
+        cascade_dir, "haarcascade_frontalface_default.xml"
     )
-    eye_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + 'haarcascade_eye.xml'
-    )
+    eye_cascade_path = os.path.join(cascade_dir, "haarcascade_eye.xml")
+    face_cascade = cv2.CascadeClassifier(face_cascade_path)
+    eye_cascade = cv2.CascadeClassifier(eye_cascade_path)
+
+    if face_cascade.empty() or eye_cascade.empty():
+        raise RuntimeError(
+            "OpenCV Haar cascade files could not be loaded. "
+            f"Checked: {face_cascade_path} and {eye_cascade_path}"
+        )
     return face_cascade, eye_cascade
 
 
